@@ -36,9 +36,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	asmFile, err := os.Create(dataDir + "SimpleAdd.asm")
+	vmExtensionIndex := strings.Index(fileName, ".vm")
+	asmFile, err := os.Create(dataDir + fileName[:vmExtensionIndex] + ".asm")
 	if err != nil {
-		fmt.Println("error!!")
+		fmt.Println(err)
 		os.Exit(1)
 	}
 
