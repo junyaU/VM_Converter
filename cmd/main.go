@@ -66,6 +66,15 @@ func main() {
 				fmt.Println(err)
 				os.Exit(1)
 			}
+
+		case VM_Converter.C_POP:
+			seg, _ := p.Arg1()
+			index, _ := p.Arg2()
+
+			if err := writer.WritePop(seg, index); err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
 		case VM_Converter.C_ARITHMETIC:
 			cmd, _ := p.Arg1()
 			if err := writer.WriteArithmetic(cmd); err != nil {

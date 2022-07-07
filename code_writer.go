@@ -26,11 +26,11 @@ func (w *CodeWriter) WriteArithmetic(command string) error {
 	case "neg":
 		asmText = "@SP\nAM=M-1\nM=-M\n@SP\nM=M+1\n"
 	case "eq":
-		asmText = "@SP\nAM=M-1\nD=M\n@SP\nAM=M-1\nD=M-D\n@COMP.0.TRUE\nD;JEQ\n@COMP.0.FALSE\n0;JMP\n(COMP.0.TRUE)\n@SP\nA=M\nM=-1\n@SP\nM=M+1\n@COMP.0.END\n0;JMP\n(COMP.0.FALSE)\n@SP\nA=M\nM=0\n@SP\nM=M+1\n(COMP.0.END\n"
+		asmText = "@SP\nAM=M-1\nD=M\n@SP\nAM=M-1\nD=M-D\n@COMP.0.TRUE\nD;JEQ\n@COMP.0.FALSE\n0;JMP\n(COMP.0.TRUE)\n@SP\nA=M\nM=-1\n@SP\nM=M+1\n@COMP.0.END\n0;JMP\n(COMP.0.FALSE)\n@SP\nA=M\nM=0\n@SP\nM=M+1\n(COMP.0.END)\n"
 	case "gt":
-		asmText = "@SP\nAM=M-1\nD=M\n@SP\nAM=M-1\nD=M-D\n@COMP.6.TRUE\nD;JGT\n@COMP.6.FALSE\n0;JMP\n(COMP.6.TRUE)\n@SP\nA=M\nM=-1\n@SP\nM=M+1\n@COMP.6.END\n0;JMP\n(COMP.6.FALSE)\n@SP\nA=M\nM=0\n@SP\nM=M+1\n(COMP.6.END\n"
+		asmText = "@SP\nAM=M-1\nD=M\n@SP\nAM=M-1\nD=M-D\n@COMP.6.TRUE\nD;JGT\n@COMP.6.FALSE\n0;JMP\n(COMP.6.TRUE)\n@SP\nA=M\nM=-1\n@SP\nM=M+1\n@COMP.6.END\n0;JMP\n(COMP.6.FALSE)\n@SP\nA=M\nM=0\n@SP\nM=M+1\n(COMP.6.END)\n"
 	case "lt":
-		asmText = "@SP\nAM=M-1\nD=M\n@SP\nAM=M-1\nD=M-D\n@COMP.3.TRUE\nD;JLT\n@COMP.3.FALSE\n0;JMP\n(COMP.3.TRUE)\n@SP\nA=M\nM=-1\n@SP\nM=M+1\n@COMP.3.END\n0;JMP\n(COMP.3.FALSE)\n@SP\nA=M\nM=0\n@SP\nM=M+1\n(COMP.3.END\n"
+		asmText = "@SP\nAM=M-1\nD=M\n@SP\nAM=M-1\nD=M-D\n@COMP.3.TRUE\nD;JLT\n@COMP.3.FALSE\n0;JMP\n(COMP.3.TRUE)\n@SP\nA=M\nM=-1\n@SP\nM=M+1\n@COMP.3.END\n0;JMP\n(COMP.3.FALSE)\n@SP\nA=M\nM=0\n@SP\nM=M+1\n(COMP.3.END)\n"
 	case "and":
 		asmText = "@SP\nAM=M-1\nD=M\n@SP\nAM=M-1\nM=D&M\n@SP\nM=M+\n"
 	case "or":
@@ -45,7 +45,7 @@ func (w *CodeWriter) WriteArithmetic(command string) error {
 	return err
 }
 
-func (w *CodeWriter) WritePush(segment string, index string) error {
+func (w *CodeWriter) WritePush(segment, index string) error {
 	var textToWrite strings.Builder
 
 	switch segment {
@@ -57,6 +57,26 @@ func (w *CodeWriter) WritePush(segment string, index string) error {
 
 		_, err := w.file.WriteString(textToWrite.String())
 		return err
+	default:
+		return errors.New("this segment does not exist")
+	}
+}
+
+func (w CodeWriter) WritePop(segment, index string) error {
+	var textToWrite strings.Builder
+	var indexARegister strings.Builder
+
+	indexARegister.WriteString("@")
+	indexARegister.WriteString(index)
+	indexARegister.WriteString("\n")
+
+	switch segment {
+	case "local":
+		textToWrite.WriteString(indexARegister.String())
+		textToWrite.WriteString("D=A\n@LCL\nA=M\nD=D+A\n@LCL\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@LCL\nA=M\nM=D\n")
+		textToWrite.WriteString(indexARegister.String())
+		textToWrite.WriteString("D=A\n@LCL\nA=M\nD=A-D\n@LCL\nM=D\n")
+		return nil
 	default:
 		return errors.New("this segment does not exist")
 	}
