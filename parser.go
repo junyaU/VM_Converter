@@ -60,7 +60,7 @@ func (p Parser) CommandType() (VMCommand, error) {
 	case "add", "sub", "neg", "eq", "gt", "lt", "and", "or", "not":
 		return C_ARITHMETIC, nil
 	default:
-		return 0, errors.New("このコマンドは存在しない")
+		return 0, errors.New("this command does not exist")
 	}
 }
 
@@ -90,6 +90,6 @@ func (p Parser) Arg2() (string, error) {
 	case C_POP, C_PUSH, C_FUNCTION, C_CALL:
 		return strings.Split(p.texts[p.currentLine], " ")[2], nil
 	default:
-		return "", errors.New("このコマンドタイプにはたいおうしておらず")
+		return "", errors.New("this command does not exist")
 	}
 }
