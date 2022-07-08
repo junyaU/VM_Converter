@@ -46,20 +46,33 @@ func (w *CodeWriter) WriteArithmetic(command string) error {
 }
 
 func (w *CodeWriter) WritePush(segment, index string) error {
-	var textToWrite strings.Builder
+	textToWrite := func(label, index string) string {
+		var t strings.Builder
 
+		t.WriteString("@" + index + "\n")
+		t.WriteString("D=A\n@" + label + "\nA=M\nD=D+A\nA=D\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n")
+		return t.String()
+	}
+
+	var label string
 	switch segment {
+	case "local":
+		label = "LCL"
 	case "constant":
-		textToWrite.WriteString("@")
-		textToWrite.WriteString(index)
-		textToWrite.WriteString("\n")
-		textToWrite.WriteString("D=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n")
+		var t strings.Builder
+		t.WriteString("@")
+		t.WriteString(index)
+		t.WriteString("\n")
+		t.WriteString("D=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n")
 
-		_, err := w.file.WriteString(textToWrite.String())
+		_, err := w.file.WriteString(t.String())
 		return err
 	default:
 		return errors.New("this segment does not exist")
 	}
+
+	_, err := w.file.WriteString(textToWrite(label, index))
+	return err
 }
 
 func (w *CodeWriter) WritePop(segment, index string) error {
@@ -68,7 +81,7 @@ func (w *CodeWriter) WritePop(segment, index string) error {
 		indexARegister := "@" + index + "\n"
 
 		text.WriteString(indexARegister)
-		text.WriteString("D=A\n" + label + "A=M\nD=D+A\n" + label + "M=D\n@SP\nM=M-1\nA=M\nD=M\n" + label + "A=M\nM=D\n")
+		text.WriteString("D=A\n@" + label + "\nA=M\nD=D+A\n@" + label + "\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@" + label + "\nA=M\nM=D\n")
 		text.WriteString(indexARegister)
 		text.WriteString("D=A\n" + label + "A=M\nD=A-D\n" + label + "M=D\n")
 
@@ -78,9 +91,13 @@ func (w *CodeWriter) WritePop(segment, index string) error {
 	var label string
 	switch segment {
 	case "local":
-		label = "@LCL\n"
+		label = "LCL"
 	case "argument":
-		label = "@ARG\n"
+		label = "ARG"
+	case "this":
+		label = "THIS"
+	case "that":
+		label = "THAT"
 	default:
 		return errors.New("this segment does not exist")
 	}
