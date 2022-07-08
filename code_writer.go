@@ -101,7 +101,7 @@ func (w *CodeWriter) WritePop(segment, index string) error {
 		return text.String()
 	}
 
-	textToWriteV2 := func(label string) string {
+	textToWrite2 := func(label string) string {
 		var t strings.Builder
 		t.WriteString("@SP\nM=M-1\nA=M\nD=M\n@")
 		t.WriteString(label)
@@ -117,7 +117,7 @@ func (w *CodeWriter) WritePop(segment, index string) error {
 		_, err := w.file.WriteString(textToWrite(label, index))
 		return err
 	case "temp", "pointer", "static":
-		_, err := w.file.WriteString(textToWriteV2(label))
+		_, err := w.file.WriteString(textToWrite2(label))
 		return err
 	default:
 		return errors.New("this segment does not exist")
