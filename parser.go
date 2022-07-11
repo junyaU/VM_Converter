@@ -59,6 +59,12 @@ func (p Parser) CommandType() (VMCommand, error) {
 		return C_POP, nil
 	case "add", "sub", "neg", "eq", "gt", "lt", "and", "or", "not":
 		return C_ARITHMETIC, nil
+	case "label":
+		return C_LABEL, nil
+	case "if-goto":
+		return C_IF, nil
+	case "goto":
+		return C_GOTO, nil
 	default:
 		return 0, errors.New("this command does not exist")
 	}

@@ -87,6 +87,24 @@ func WriteToAsmFile(w *VM_Converter.CodeWriter, p *VM_Converter.Parser) error {
 			if err := w.WriteArithmetic(cmd); err != nil {
 				return err
 			}
+
+		case VM_Converter.C_LABEL:
+			cmd, _ := p.Arg1()
+			if err := w.WriteLabel(cmd); err != nil {
+				return err
+			}
+
+		case VM_Converter.C_IF:
+			cmd, _ := p.Arg1()
+			if err := w.WriteIf(cmd); err != nil {
+				return err
+			}
+
+		case VM_Converter.C_GOTO:
+			cmd, _ := p.Arg1()
+			if err := w.WriteGoto(cmd); err != nil {
+				return err
+			}
 		}
 
 		p.Advance()

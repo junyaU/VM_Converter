@@ -124,6 +124,36 @@ func (w *CodeWriter) WritePop(segment, index string) error {
 	}
 }
 
+func (w *CodeWriter) WriteLabel(label string) error {
+	var t strings.Builder
+	t.WriteString("(")
+	t.WriteString(label)
+	t.WriteString(")\n")
+
+	_, err := w.file.WriteString(t.String())
+	return err
+}
+
+func (w *CodeWriter) WriteIf(label string) error {
+	var t strings.Builder
+	t.WriteString("@SP\nM=M-1\nA=M\nD=M\n@")
+	t.WriteString(label)
+	t.WriteString("\nD;JNE\n")
+
+	_, err := w.file.WriteString(t.String())
+	return err
+}
+
+func (w *CodeWriter) WriteGoto(label string) error {
+	var t strings.Builder
+	t.WriteString("@")
+	t.WriteString(label)
+	t.WriteString("\n0;JMP\n")
+
+	_, err := w.file.WriteString(t.String())
+	return err
+}
+
 func (w *CodeWriter) outputLabel(segment, index string) string {
 	var label string
 	switch segment {
