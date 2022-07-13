@@ -3,42 +3,56 @@ package VM_Converter
 import (
 	"bufio"
 	"errors"
-	"io"
+	"os"
 	"strings"
 )
 
 type Parser struct {
-	texts       []string
-	currentLine int
+	texts          []string
+	currentLine    int
+	isExistSysFile bool
 }
 
-func NewParser(f io.Reader) *Parser {
-	scanner := bufio.NewScanner(f)
+func NewParser(fs []*os.File) *Parser {
 	var rowTexts []string
 
-	for scanner.Scan() {
-		text := scanner.Text()
-
-		commentOutIndex := strings.Index(text, "//")
-		if commentOutIndex != -1 {
-			text = text[:commentOutIndex]
-		}
-
-		if text == "" {
-			continue
-		}
-
-		rowTexts = append(rowTexts, strings.TrimSpace(text))
+	var isSys bool
+	if len(fs) > 1 {
+		isSys = true
 	}
 
+	for _, f := range fs {
+		scanner := bufio.NewScanner(f)
+
+		for scanner.Scan() {
+			text := scanner.Text()
+
+			commentOutIndex := strings.Index(text, "//")
+			if commentOutIndex != -1 {
+				text = text[:commentOutIndex]
+			}
+
+			if text == "" {
+				continue
+			}
+
+			rowTexts = append(rowTexts, strings.TrimSpace(text))
+		}
+
+	}
 	return &Parser{
-		texts:       rowTexts,
-		currentLine: 0,
+		texts:          rowTexts,
+		currentLine:    0,
+		isExistSysFile: isSys,
 	}
 }
 
 func (p Parser) Commands() []string {
 	return p.texts
+}
+
+func (p Parser) IsExistSys() bool {
+	return p.isExistSysFile
 }
 
 func (p Parser) HasMoreCommands() bool {
@@ -65,6 +79,12 @@ func (p Parser) CommandType() (VMCommand, error) {
 		return C_IF, nil
 	case "goto":
 		return C_GOTO, nil
+	case "function":
+		return C_FUNCTION, nil
+	case "return":
+		return C_RETURN, nil
+	case "call":
+		return C_CALL, nil
 	default:
 		return 0, errors.New("this command does not exist")
 	}

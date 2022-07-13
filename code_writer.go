@@ -154,6 +154,43 @@ func (w *CodeWriter) WriteGoto(label string) error {
 	return err
 }
 
+func (w *CodeWriter) WriteFunction(funcName string, numLocals int) error {
+	var t strings.Builder
+
+	t.WriteString("(")
+	t.WriteString(funcName)
+	t.WriteString(")\n")
+
+	for i := 0; i < numLocals; i++ {
+		t.WriteString("@SP\nA=M\nM=0\n@SP\nM=M+1\n")
+	}
+
+	_, err := w.file.WriteString(t.String())
+	return err
+}
+
+func (w *CodeWriter) WriteReturn() error {
+	_, err := w.file.WriteString("@LCL\nD=M\n@frame\nM=D\n@5\nD=D-A\nA=D\nD=M\n@ret\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@ARG\nA=M\nM=D\n@ARG\nD=M+1\n@SP\nM=D\n@frame\nD=M\n@1\nD=D-A\nA=D\nD=M\n@THAT\nM=D\n@frame\nD=M\n@2\nD=D-A\nA=D\nD=M\n@THIS\nM=D\n@frame\nD=M\n@3\nD=D-A\nA=D\nD=M\n@ARG\nM=D\n@frame\nD=M\n@4\nD=D-A\nA=D\nD=M\n@LCL\nM=D\n@ret\nA=M\n0;JMP\n")
+	return err
+}
+
+func (w *CodeWriter) WriteInit() error {
+	_, err := w.file.WriteString("@256\nD=A\n@SP\nM=D\n@RETURNBOOT\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@LCL\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@ARG\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@THIS\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@THAT\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\nD=M\n@0\nD=D-A\n@5\nD=D-A\n@ARG\nM=D\n@SP\nD=M\n@LCL\nM=D\n@Sys.init\n0;JMP\n(RETURNBOOT)\n")
+	return err
+}
+
+func (w CodeWriter) WriteCall(funcName string, numArgs int) error {
+	var t strings.Builder
+
+	t.WriteString("@RETURN18\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@LCL\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@ARG\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@THIS\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@THAT\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\nD=M\n@")
+	t.WriteString(strconv.Itoa(numArgs))
+	t.WriteString("\nD=D-A\n@5\nD=D-A\n@ARG\nM=D\n@SP\nD=M\n@LCL\nM=D\n@")
+	t.WriteString(funcName)
+	t.WriteString("\n0;JMP\n(RETURN18)\n")
+
+	return nil
+}
+
 func (w *CodeWriter) outputLabel(segment, index string) string {
 	var label string
 	switch segment {
@@ -179,6 +216,10 @@ func (w *CodeWriter) outputLabel(segment, index string) string {
 	case "static":
 		asmExtension := ".asm"
 		fileName := w.file.Name()
+		if strings.Contains(fileName, "/") {
+			fileName = fileName[strings.Index(fileName, "/")+1:]
+		}
+
 		dir := "/"
 		fileName = fileName[strings.Index(fileName, dir)+1:]
 		label = fileName[:strings.Index(fileName, asmExtension)] + "." + index
